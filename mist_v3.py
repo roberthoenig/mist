@@ -168,7 +168,8 @@ def init(epsilon: int = 16, steps: int = 100, alpha: int = 1,
     """
 
     if ckpt is None:
-        ckpt = 'models/ldm/stable-diffusion-v1/model.ckpt'
+        # ckpt = 'models/ldm/stable-diffusion-v1/model.ckpt'
+        ckpt = 'models/ldm/stable-diffusion-v2/model.ckpt'
 
     if base is None:
         base = 'configs/stable-diffusion/v1-inference-attack.yaml'
@@ -288,7 +289,9 @@ if __name__ == "__main__":
         config = init(epsilon=epsilon, steps=steps, mode=mode, rate=rate)
         config['parameters']["input_size"] = bls
 
-        for img_id in os.listdir(image_dir_path):
+        for img_id in sorted(os.listdir(image_dir_path)):
+            if not (img_id.endswith(".png") or img_id.endswith(".jpg")):
+                continue
             image_path = os.path.join(image_dir_path, img_id)
 
             if resize:
@@ -317,11 +320,12 @@ if __name__ == "__main__":
 
                     output_image[bls_w*i: bls_w*i+bls_w, bls_h*j: bls_h*j + bls_h] = infer(img_block, config, tar_block, input_mask)
             output = Image.fromarray(output_image.astype(np.uint8))
-            output_dir = os.path.join('outputs/dirs', args.output_dir)
+            # output_dir = os.path.join('outputs/dirs', args.output_dir)
+            output_dir = args.output_dir
             class_name = '_' + str(epsilon) + '_' + str(steps) + '_' + str(input_size) + '_' + str(block_num) + '_' + str(mode) + '_' + str(args.rate) + '_' + str(int(mask)) + '_' + str(int(resize))
-            output_path_dir = output_dir + class_name
+            output_path_dir = output_dir # + class_name
             if not os.path.exists(output_path_dir):
-                os.mkdir(output_path_dir)
+                os.makedirs(output_path_dir, exist_ok=True)
             output_path = os.path.join(output_path_dir, img_id)
             print("Output image saved in path {}".format(output_path))
             output.save(output_path)
